@@ -120,6 +120,8 @@ def search():
 
 #Рисует выбранный график
 def draw(function_var):
+    global stop_flag
+    stop_flag = False
     minnX = minX_var.get()
     maxxX = maxX_var.get()
     minnY = minY_var.get()
