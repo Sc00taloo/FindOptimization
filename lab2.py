@@ -4,15 +4,6 @@ def f(x1, x2):
     return 2 * x1 ** 2 + 3 * x2 **2 + 4 * x1*x2 - 6 * x1 - 3 * x2
 def simplex_method(x,y):
     points = []
-    #ограничения
-    def con1(x_i):
-        x1 = x_i[0]
-        x2 = x_i[1]
-        return x1 - x2 - 1
-    def con2(x_i):
-        x1 = x_i[0]
-        x2 = x_i[1]
-        return 2*x1 - 3*x2 - 4
     def fun(x_i):
         x1 = x_i[0]
         x2 = x_i[1]
@@ -27,8 +18,7 @@ def simplex_method(x,y):
     bounds = (b, b)
     #начальная точка
     x0 = (x, y)
-    con = {'type': 'eq', 'fun': con1}
-    con1 = {'type': 'eq', 'fun': con2}
+    con = {'type': 'eq', 'fun': fun}
     #основной вызов
     res = minimize(fun, x0, method="SLSQP", bounds=bounds,constraints=con, callback=callback)
 

@@ -136,7 +136,7 @@ def search2():
     x_point = []
     y_point = []
     z_point = []
-    for i, point in lab2.simplex_method(0,1):
+    for i, point in lab2.simplex_method(10,10):
         if stop_flag:
             x_point.append(point[0])
             y_point.append(point[1])
