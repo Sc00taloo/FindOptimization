@@ -7,6 +7,7 @@ import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import lab1
 import lab2
+import lab3
 
 stop_flag = True
 
@@ -16,7 +17,7 @@ def toggle_optionmenu(event):
         function_dropdown.config(state=tk.DISABLED)
         draw("График для 2 лабы")
     else:
-        function_dropdown.set_menu("...", "Била", "Сферы", "Изома", "Растригина", "График для 2 лабы")
+        function_dropdown.set_menu("...", "Била", "Сферы", "Изома", "Растригина", "График для 2 лабы", "Розенброкк")
         function_dropdown.config(state=tk.NORMAL)
 
 def button_click():
@@ -25,6 +26,8 @@ def button_click():
             search()
         case 1:
             search2()
+        case 2:
+            search3()
 
 #Рисует и выводит результаты
 def search():
@@ -136,7 +139,7 @@ def search2():
     x_point = []
     y_point = []
     z_point = []
-    for i, point in lab2.simplex_method(10,10):
+    for i, point in lab2.simplex_method(5,5):
         if stop_flag:
             x_point.append(point[0])
             y_point.append(point[1])
@@ -145,6 +148,7 @@ def search2():
             results.append((point[0], point[1], i, point[2]))
             ax.scatter(point[0], point[1], point[2], c='r', alpha=1.0)
             points_text.insert(tk.END,f"Итерация {i + 1}:({point[0]:.4f}, {point[1]:.4f}) f= {point[2]:.4f}\n")
+            points_text.see(tk.END)
             canvas.draw()
             root.update()
             time.sleep(delay)
@@ -155,6 +159,105 @@ def search2():
     points_text.insert(tk.END, f"Итог ({results[length][0]:.4f}, {results[length][1]:.4f}) f= {results[length][3]:.4f}\n")
     points_text.see(tk.END)
 
+def search3():
+    global stop_flag
+    stop_flag = True
+    minnX = minX_var.get()
+    maxxX = maxX_var.get()
+    minnY = minY_var.get()
+    maxxY = maxY_var.get()
+    osiX = osiX_var.get()
+    osiY = osiY_var.get()
+    delay = delay_var3.get()
+    selected_function = function_var.get()
+    individuals = individuals_var3.get()
+    points = points_var3.get()
+
+    match selected_function:
+        case "Изома":
+            function = lab1.easom_function
+            gradient = lab1.gradient_easom
+        case "Била":
+            function = lab1.beale_function
+            gradient = lab1.gradient_beale
+        case "Сферы":
+            function = lab1.sphere_function
+            gradient = lab1.gradient_sphere
+        case "Растригина":
+            function = lab1.rastrigin_function
+            gradient = lab1.gradient_rastrigin
+        case "График для 2 лабы":
+            function = lab2.f
+        case "Розенброкк":
+            function = lab3.rosenbrock
+
+    x = np.linspace(minnX, maxxX, 100)
+    y = np.linspace(minnY, maxxY, 100)
+    X, Y = np.meshgrid(x, y)
+    Z = function(X, Y)
+
+    ax.cla()
+    ax.plot_surface(X, Y, Z, cmap='twilight', alpha=0.8)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.set_title('КП')
+    ax.set_xlim(-osiX, osiX)
+    ax.set_ylim(-osiY, osiY)
+
+    genetic = lab3.GeneticAlgorithm(function, points, True, 0.8, 0.8, individuals)
+    genetic.generate_start_population(5, 5)
+
+    for j in range(individuals):
+        ax.scatter(genetic.population[j][0], genetic.population[j][1], genetic.population[j][2],c='black', alpha=0.8)
+    best_individual = genetic.get_best_individual()
+
+    ax.scatter(best_individual[1][0], best_individual[1][1], best_individual[1][2],c='red', alpha=0.8)
+    canvas.draw()
+    root.update()
+
+    ax.cla()
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.plot_surface(X, Y, Z, cmap='twilight', alpha=0.8)
+    canvas.draw()
+
+    for i in range(points):
+        if stop_flag:
+            for j in range(individuals):
+                ax.scatter(genetic.population[j][0], genetic.population[j][1], genetic.population[j][2], c='black', alpha=0.8)
+
+            genetic.select()
+            genetic.mutation(i)
+
+            best_individual = genetic.get_best_individual()
+            ax.scatter(best_individual[1][0], best_individual[1][1], best_individual[1][2], c='red', alpha=0.8)
+            # Сохранение результатов и обновление графика
+            points_text.insert(tk.END, f"Итерация {i}:({best_individual[1][0]:.4f}, {best_individual[1][1]:.4f}) f= {best_individual[1][2]:.4f}\n")
+            points_text.see(tk.END)
+            canvas.draw()
+            root.update()
+            time.sleep(delay)
+
+            ax.cla()
+            ax.set_xlabel('X')
+            ax.set_ylabel('Y')
+            ax.set_zlabel('Z')
+            ax.plot_surface(X, Y, Z, cmap='twilight', alpha=0.8)
+            canvas.draw()
+            for j in range(individuals):
+                ax.scatter(genetic.population[j][0], genetic.population[j][1], genetic.population[j][2], c='black', alpha=0.8)
+
+            best_individual = genetic.get_best_individual()
+            ax.scatter(best_individual[1][0], best_individual[1][1], best_individual[1][2], c='red', alpha=0.8)
+            canvas.draw()
+            root.update()
+        else:
+            break
+    # Вывод окончательного результата
+    points_text.insert(tk.END,f"Итог ({best_individual[1][0]:.4f}, {best_individual[1][1]:.4f}) f= {best_individual[1][2]:.4f}\n")
+    points_text.see(tk.END)
 
 # #Рисует выбранный график
 def draw(function_var):
@@ -178,6 +281,8 @@ def draw(function_var):
            function = lab1.rastrigin_function
        case "График для 2 лабы":
            function = lab2.f
+       case "Розенброкк":
+           function = lab3.rosenbrock
 
    x = np.linspace(minnX, maxxX, 100)
    y = np.linspace(minnY, maxxY, 100)
@@ -220,6 +325,8 @@ frame1 = ttk.Frame(notebook)
 notebook.add(frame1, text=f"Лаба 1")
 frame2 = ttk.Frame(notebook)
 notebook.add(frame2, text=f"Лаба 2")
+frame3 = ttk.Frame(notebook)
+notebook.add(frame3, text=f"Лаба 3")
 
 ##################### 1 laba #####################
 
@@ -267,6 +374,29 @@ delay_var2 = tk.DoubleVar(value=0.5)
 delay_entry = ttk.Entry(frame2, textvariable=delay_var2)
 delay_entry.grid(column=2, row=1)
 
+#####################  3 laba  #####################
+
+start_label = tk.Label(frame3, text="Начальная настройка", font=("Arial", 16))
+start_label.grid(column=1, row=0, columnspan=2)
+
+points_label = tk.Label(frame3, text="Количество итераций:", font=("Arial", 12))
+points_label.grid(column=1, row=1)
+points_var3 = tk.IntVar(value=100)
+points_entry = ttk.Entry(frame3, textvariable=points_var3)
+points_entry.grid(column=2, row=1)
+
+individuals_label = tk.Label(frame3, text="Количество особей:", font=("Arial", 12))
+individuals_label.grid(column=1, row=2)
+individuals_var3 = tk.IntVar(value=20)
+individuals_entry = ttk.Entry(frame3, textvariable=individuals_var3)
+individuals_entry.grid(column=2, row=2)
+
+delay_label = tk.Label(frame3, text="Задержка:", font=("Arial", 12))
+delay_label.grid(column=1, row=3)
+delay_var3 = tk.DoubleVar(value=0.01)
+delay_entry = ttk.Entry(frame3, textvariable=delay_var3)
+delay_entry.grid(column=2, row=3)
+
 #####################    #####################
 
 # Функции и их отображения
@@ -276,7 +406,7 @@ end_label.grid(column=1, row=8, columnspan=2)
 function_label = tk.Label(root, text="Функция:", font=("Arial", 12))
 function_label.grid(column=1,row=9)
 function_var = tk.StringVar(value="...")
-function_dropdown = ttk.OptionMenu(root, function_var, "...", "Била", "Сферы", "Изома", "Растригина", "График для 2 лабы", command=draw)
+function_dropdown = ttk.OptionMenu(root, function_var, "...", "Била", "Сферы", "Изома", "Растригина", "График для 2 лабы", "Розенброкк", command=draw)
 function_dropdown.grid(column=2,row=9)
 notebook.bind('<<NotebookTabChanged>>', toggle_optionmenu)
 
