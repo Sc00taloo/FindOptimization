@@ -107,6 +107,7 @@ def search():
 def search2():
     global stop_flag
     stop_flag = True
+    points_text.delete(1.0, tk.END)
     minnX = minX_var.get()
     maxxX = maxX_var.get()
     minnY = minY_var.get()
@@ -162,6 +163,7 @@ def search2():
 def search3():
     global stop_flag
     stop_flag = True
+    points_text.delete(1.0, tk.END)
     minnX = minX_var.get()
     maxxX = maxX_var.get()
     minnY = minY_var.get()
@@ -205,11 +207,14 @@ def search3():
     ax.set_xlim(-osiX, osiX)
     ax.set_ylim(-osiY, osiY)
 
-    genetic = lab3.GeneticAlgorithm(function, points, True, 0.8, 0.8, individuals)
+    #Создаёт объект genetic класса GeneticAlgorithm
+    genetic = lab3.GeneticAlgorithm(function, points, True, 0.6, 0.6, individuals)
+    #Генерирует начальную популяцию особей
     genetic.generate_start_population(5, 5)
 
     for j in range(individuals):
         ax.scatter(genetic.population[j][0], genetic.population[j][1], genetic.population[j][2],c='black', alpha=0.8)
+    #Находит лучшую особь
     best_individual = genetic.get_best_individual()
 
     ax.scatter(best_individual[1][0], best_individual[1][1], best_individual[1][2],c='red', alpha=0.8)
@@ -223,18 +228,21 @@ def search3():
     ax.plot_surface(X, Y, Z, cmap='twilight', alpha=0.8)
     canvas.draw()
 
+    #Проходит по всем поколениям points
     for i in range(points):
         if stop_flag:
             for j in range(individuals):
                 ax.scatter(genetic.population[j][0], genetic.population[j][1], genetic.population[j][2], c='black', alpha=0.8)
 
+            #Производим селекцию (отбор) особей
             genetic.select()
+            #Мутируем поколение i
             genetic.mutation(i)
-
+            #Находит лучшую особь
             best_individual = genetic.get_best_individual()
             ax.scatter(best_individual[1][0], best_individual[1][1], best_individual[1][2], c='red', alpha=0.8)
-            # Сохранение результатов и обновление графика
-            points_text.insert(tk.END, f"Итерация {i}:({best_individual[1][0]:.4f}, {best_individual[1][1]:.4f}) f= {best_individual[1][2]:.4f}\n")
+            #Сохранение результатов и обновление графика
+            points_text.insert(tk.END, f"Поколение {i+1}:({best_individual[1][0]:.4f}, {best_individual[1][1]:.4f}) f= {best_individual[1][2]:.4f}\n")
             points_text.see(tk.END)
             canvas.draw()
             root.update()
@@ -249,6 +257,7 @@ def search3():
             for j in range(individuals):
                 ax.scatter(genetic.population[j][0], genetic.population[j][1], genetic.population[j][2], c='black', alpha=0.8)
 
+            #Находит лучшую особь
             best_individual = genetic.get_best_individual()
             ax.scatter(best_individual[1][0], best_individual[1][1], best_individual[1][2], c='red', alpha=0.8)
             canvas.draw()
