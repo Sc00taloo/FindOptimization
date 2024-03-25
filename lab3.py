@@ -13,17 +13,16 @@ class GeneticAlgorithm:
         self.individuals = individuals #кол-ао особей
         self.min_func = min_func
 
-
-    #Находиться лучшую особь на основе значений функции у особей в популяции.
-    def get_best_individual(self):
-        return min(self.population.items(), key=lambda item: item[1][2])
-
     #Создаёт начальную популяцию с произвольными значениями координат для особей и значениями функции для каждой особи.
     def generate_start_population(self, x, y):
         for i in range(self.individuals):
             po_x = uniform(-x, x)
             po_y = uniform(-y, y)
             self.population[i] = [po_x, po_y, self.func(po_x, po_y)]  # Создание начальной популяции
+
+    #Находиться лучшую особь на основе значений функции у особей в популяции.
+    def get_best_individual(self):
+        return min(self.population.items(), key=lambda item: item[1][2])
 
     #Функция, которая сортирует особей в популяции и выбирает лучших родителей для скрещивания.
     def select(self):

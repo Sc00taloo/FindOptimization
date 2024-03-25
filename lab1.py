@@ -39,3 +39,6 @@ def gradient_rastrigin(x, y):
     dx = 2*x + 20 * np.pi * np.sin(2*np.pi*x)
     dy = 2*y + 20 * np.pi * np.sin(2*np.pi*y)
     return dx, dy
+
+def himmelblau_function(x, y):
+    return (x**2 + y - 11)**2 + (x + y**2 - 7)**2

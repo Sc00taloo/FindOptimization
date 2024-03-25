@@ -8,6 +8,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import lab1
 import lab2
 import lab3
+import lab4
 
 stop_flag = True
 
@@ -17,7 +18,7 @@ def toggle_optionmenu(event):
         function_dropdown.config(state=tk.DISABLED)
         draw("График для 2 лабы")
     else:
-        function_dropdown.set_menu("...", "Била", "Сферы", "Изома", "Растригина", "График для 2 лабы", "Розенброкк")
+        function_dropdown.set_menu("...", "Била", "Сферы", "Изома", "Растригина", "График для 2 лабы", "Розенброкк", "Химмельблау")
         function_dropdown.config(state=tk.NORMAL)
 
 def button_click():
@@ -28,6 +29,8 @@ def button_click():
             search2()
         case 2:
             search3()
+        case 3:
+            search4()
 
 #Рисует и выводит результаты
 def search():
@@ -62,6 +65,8 @@ def search():
             gradient = lab1.gradient_rastrigin
         case "График для 2 лабы":
             function = lab2.f
+        case "Химмельблау":
+            function = lab1.himmelblau_function
 
     x = np.linspace(minnX, maxxX, 100)
     y = np.linspace(minnY, maxxY, 100)
@@ -126,7 +131,7 @@ def search2():
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
-    ax.set_title('КП')
+    ax.set_title('График для 2 лабы')
     ax.set_xlim(-osiX, osiX)
     ax.set_ylim(-osiY, osiY)
 
@@ -178,20 +183,18 @@ def search3():
     match selected_function:
         case "Изома":
             function = lab1.easom_function
-            gradient = lab1.gradient_easom
         case "Била":
             function = lab1.beale_function
-            gradient = lab1.gradient_beale
         case "Сферы":
             function = lab1.sphere_function
-            gradient = lab1.gradient_sphere
         case "Растригина":
             function = lab1.rastrigin_function
-            gradient = lab1.gradient_rastrigin
         case "График для 2 лабы":
             function = lab2.f
         case "Розенброкк":
             function = lab3.rosenbrock
+        case "Химмельблау":
+            function = lab1.himmelblau_function
 
     x = np.linspace(minnX, maxxX, 100)
     y = np.linspace(minnY, maxxY, 100)
@@ -203,7 +206,7 @@ def search3():
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
-    ax.set_title('КП')
+    ax.set_title(selected_function)
     ax.set_xlim(-osiX, osiX)
     ax.set_ylim(-osiY, osiY)
 
@@ -268,6 +271,113 @@ def search3():
     points_text.insert(tk.END,f"Итог ({best_individual[1][0]:.4f}, {best_individual[1][1]:.4f}) f= {best_individual[1][2]:.4f}\n")
     points_text.see(tk.END)
 
+def search4():
+    global stop_flag
+    stop_flag = True
+    points_text.delete(1.0, tk.END)
+    minnX = minX_var.get()
+    maxxX = maxX_var.get()
+    minnY = minY_var.get()
+    maxxY = maxY_var.get()
+    osiX = osiX_var.get()
+    osiY = osiY_var.get()
+    selected_function = function_var.get()
+    delay = delay_var4.get()
+    points = points_var4.get()
+    particles = particles_var4.get()
+    alpha = alpha_var4.get()
+    beta = beta_var4.get()
+    inertia = inertia_var4.get()
+
+    match selected_function:
+        case "Изома":
+            function = lab1.easom_function
+        case "Била":
+            function = lab1.beale_function
+        case "Сферы":
+            function = lab1.sphere_function
+        case "Растригина":
+            function = lab1.rastrigin_function
+        case "График для 2 лабы":
+            function = lab2.f
+        case "Розенброкк":
+            function = lab3.rosenbrock
+        case "Химмельблау":
+            function = lab1.himmelblau_function
+
+    x = np.linspace(minnX, maxxX, 100)
+    y = np.linspace(minnY, maxxY, 100)
+    X, Y = np.meshgrid(x, y)
+    Z = function(X, Y)
+
+    ax.cla()
+    ax.plot_surface(X, Y, Z, cmap='twilight', alpha=0.8)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.set_title(selected_function)
+    ax.set_xlim(-osiX, osiX)
+    ax.set_ylim(-osiY, osiY)
+
+    particle = lab4.ParticleAlgorithm(function, particles, alpha, beta, inertia)
+    #Генерирует начальную популяцию частиц
+    particle.generate_start(5, 5)
+
+    for j in range(particles):
+        ax.scatter(particle.new_particles[j][0], particle.new_particles[j][1], particle.new_particles[j][2],c='black', alpha=0.8)
+    #Находит лучшую частицу
+    best_particles = particle.get_best_position()
+    ax.scatter(best_particles[1][0], best_particles[1][1], best_particles[1][2],c='red', alpha=0.8)
+    canvas.draw()
+    root.update()
+
+    ax.cla()
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.plot_surface(X, Y, Z, cmap='twilight', alpha=0.8)
+    canvas.draw()
+
+    #Получаем начальную скорость для всех частиц
+    particle.generate_velosity()
+
+    #Итерируем N раз (points)
+    for i in range(points):
+        if stop_flag:
+            for j in range(particles):
+                ax.scatter(particle.new_particles[j][0], particle.new_particles[j][1], particle.new_particles[j][2], c='black', alpha=0.8)
+            #Двигает частицы
+            particle.update_particles()
+            #Находит лучшую частицу
+            best_particles = particle.get_best_position()
+            ax.scatter(best_particles[1][0], best_particles[1][1], best_particles[1][2], c='red', alpha=0.8)
+            #Сохранение результатов и обновление графика
+            points_text.insert(tk.END, f"Итерация {i+1}:({best_particles[1][0]:.4f}, {best_particles[1][1]:.4f}) f= {best_particles[1][2]:.4f}\n")
+            points_text.see(tk.END)
+            canvas.draw()
+            root.update()
+            time.sleep(delay)
+
+            ax.cla()
+            ax.set_xlabel('X')
+            ax.set_ylabel('Y')
+            ax.set_zlabel('Z')
+            ax.plot_surface(X, Y, Z, cmap='twilight', alpha=0.8)
+            canvas.draw()
+            for j in range(particles):
+                ax.scatter(particle.new_particles[j][0], particle.new_particles[j][1], particle.new_particles[j][2], c='black', alpha=0.8)
+
+            #Находит лучшую частицу
+            best_particles = particle.get_best_position()
+            ax.scatter(best_particles[1][0], best_particles[1][1], best_particles[1][2], c='red', alpha=0.8)
+            canvas.draw()
+            root.update()
+        else:
+            break
+    # Вывод окончательного результата
+    points_text.insert(tk.END,f"Итог ({best_particles[1][0]:.4f}, {best_particles[1][1]:.4f}) f= {best_particles[1][2]:.4f}\n")
+    points_text.see(tk.END)
+
 # #Рисует выбранный график
 def draw(function_var):
    global stop_flag
@@ -292,6 +402,8 @@ def draw(function_var):
            function = lab2.f
        case "Розенброкк":
            function = lab3.rosenbrock
+       case "Химмельблау":
+           function = lab1.himmelblau_function
 
    x = np.linspace(minnX, maxxX, 100)
    y = np.linspace(minnY, maxxY, 100)
@@ -336,6 +448,8 @@ frame2 = ttk.Frame(notebook)
 notebook.add(frame2, text=f"Лаба 2")
 frame3 = ttk.Frame(notebook)
 notebook.add(frame3, text=f"Лаба 3")
+frame4 = ttk.Frame(notebook)
+notebook.add(frame4, text=f"Лаба 4")
 
 ##################### 1 laba #####################
 
@@ -406,6 +520,47 @@ delay_var3 = tk.DoubleVar(value=0.01)
 delay_entry = ttk.Entry(frame3, textvariable=delay_var3)
 delay_entry.grid(column=2, row=3)
 
+#####################  4 laba  #####################
+
+start_label = tk.Label(frame4, text="Начальная настройка", font=("Arial", 16))
+start_label.grid(column=1, row=0, columnspan=2)
+
+points_label = tk.Label(frame4, text="Количество итераций:", font=("Arial", 12))
+points_label.grid(column=1, row=1)
+points_var4 = tk.IntVar(value=50)
+points_entry = ttk.Entry(frame4, textvariable=points_var4)
+points_entry.grid(column=2, row=1)
+
+particles_label = tk.Label(frame4, text="Количество частиц:", font=("Arial", 12))
+particles_label.grid(column=1, row=2)
+particles_var4 = tk.IntVar(value=10)
+particles_entry = ttk.Entry(frame4, textvariable=particles_var4)
+particles_entry.grid(column=2, row=2)
+
+alpha_label = tk.Label(frame4, text="Альфа:", font=("Arial", 12))
+alpha_label.grid(column=1, row=3)
+alpha_var4 = tk.DoubleVar(value=0.8)
+alpha_entry = ttk.Entry(frame4, textvariable=alpha_var4)
+alpha_entry.grid(column=2, row=3)
+
+beta_label = tk.Label(frame4, text="Бета:", font=("Arial", 12))
+beta_label.grid(column=1, row=4)
+beta_var4 = tk.DoubleVar(value=0.9)
+beta_entry = ttk.Entry(frame4, textvariable=beta_var4)
+beta_entry.grid(column=2, row=4)
+
+inertia_label = tk.Label(frame4, text="Инерция:", font=("Arial", 12))
+inertia_label.grid(column=1, row=5)
+inertia_var4 = tk.DoubleVar(value=0.5)
+inertia_entry = ttk.Entry(frame4, textvariable=inertia_var4)
+inertia_entry.grid(column=2, row=5)
+
+delay_label = tk.Label(frame4, text="Задержка:", font=("Arial", 12))
+delay_label.grid(column=1, row=6)
+delay_var4 = tk.DoubleVar(value=0.01)
+delay_entry = ttk.Entry(frame4, textvariable=delay_var4)
+delay_entry.grid(column=2, row=6)
+
 #####################    #####################
 
 # Функции и их отображения
@@ -415,7 +570,7 @@ end_label.grid(column=1, row=8, columnspan=2)
 function_label = tk.Label(root, text="Функция:", font=("Arial", 12))
 function_label.grid(column=1,row=9)
 function_var = tk.StringVar(value="...")
-function_dropdown = ttk.OptionMenu(root, function_var, "...", "Била", "Сферы", "Изома", "Растригина", "График для 2 лабы", "Розенброкк", command=draw)
+function_dropdown = ttk.OptionMenu(root, function_var, "...", "Била", "Сферы", "Изома", "Растригина", "График для 2 лабы", "Розенброкк", "Химмельблау", command=draw)
 function_dropdown.grid(column=2,row=9)
 notebook.bind('<<NotebookTabChanged>>', toggle_optionmenu)
 
