@@ -9,6 +9,8 @@ import lab1
 import lab2
 import lab3
 import lab4
+import lab5
+import lab6
 
 stop_flag = True
 
@@ -31,6 +33,10 @@ def button_click():
             search3()
         case 3:
             search4()
+        case 4:
+            search5()
+        case 5:
+            search6()
 
 #Рисует и выводит результаты
 def search():
@@ -378,6 +384,269 @@ def search4():
     points_text.insert(tk.END,f"Итог ({best_particles[1][0]:.4f}, {best_particles[1][1]:.4f}) f= {best_particles[1][2]:.4f}\n")
     points_text.see(tk.END)
 
+def search5():
+    global stop_flag
+    stop_flag = True
+    points_text.delete(1.0, tk.END)
+    selected_function = function_var.get()
+    tru_delay = delay_var5.get()
+    num_iter = points_var5.get()
+    invest = investigators_var5.get()
+    bip = bee_in_persp_var5.get()
+    bib = bee_in_best_var5.get()
+    persp_uch = persp_uchastki_var5.get()
+    uchastok = uchastki_var5.get()
+    razmer = razmer_var5.get()
+
+    minnX = minX_var.get()
+    maxxX = maxX_var.get()
+    minnY = minY_var.get()
+    maxxY = maxY_var.get()
+    osiX = osiX_var.get()
+    osiY = osiY_var.get()
+
+    match selected_function:
+        case "Изома":
+            function = lab1.easom_function
+        case "Била":
+            function = lab1.beale_function
+        case "Сферы":
+            function = lab1.sphere_function
+        case "Растригина":
+            function = lab1.rastrigin_function
+        case "График для 2 лабы":
+            function = lab2.f
+        case "Розенброкк":
+            function = lab3.rosenbrock
+        case "Химмельблау":
+            function = lab1.himmelblau_function
+
+    x = np.linspace(minnX, maxxX, 100)
+    y = np.linspace(minnY, maxxY, 100)
+    X, Y = np.meshgrid(x, y)
+    Z = function(X, Y)
+
+    ax.cla()
+    ax.plot_surface(X, Y, Z, cmap='twilight', alpha=0.8)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.set_title(selected_function)
+    ax.set_xlim(-osiX, osiX)
+    ax.set_ylim(-osiY, osiY)
+
+    bees_swarm = lab5.Bees(function, invest, uchastok, persp_uch, bib, bip, razmer)
+    #Генерирует начальных разведчиков
+    bees_swarm.generate_start_scouts(maxxX, maxxY)
+    #Соритрует их
+    bees_swarm.sorted_scouts()
+    #Выводим их на экран
+    for new_scouts in bees_swarm.new_scouts:
+        ax.scatter(new_scouts[0], new_scouts[1], new_scouts[2], c="black", alpha=0.8, s=3)
+
+    #Находим участки
+    bees_swarm.best_uchastochek()
+    bees_swarm.persp_uchastochek()
+
+    #Проверяем на близость
+    bees_swarm.proferka()
+    #Определяем популярность пчёл
+    bees_swarm.razmer_bees()
+
+    canvas.draw()
+    root.update()
+
+    # Итерируем N раз (num_iter)
+    for i in range(num_iter):
+        if (stop_flag):
+            #Выпускате пчёл на лучшие участки
+            bees_swarm.best_in_uchastki()
+            for b in bees_swarm.bees[:uchastok]:
+                ax.scatter(b[0], b[1], b[2], c="red")
+            #Выпускате пчёл на перспективные участки
+            bees_swarm.persp_in_uchastki()
+
+            #Отправялем разведчиков искать новые участки
+            bees_swarm.go_bees_scouts(maxxX, maxxY)
+            #Соритруем пчёл
+            bees_swarm.sorted_bees_in_hive()
+            #Выводим на экран всех пчёл
+            for new_scouts in bees_swarm.bees:
+                ax.scatter(new_scouts[0], new_scouts[1], new_scouts[2], c="black", alpha=0.8, s=3)
+            #Выпускате пчёл на лучшие участки
+            bees_swarm.best_uchastochek()
+            bees_swarm.persp_uchastochek()
+            #Выпускате пчёл на перспективные участки
+            bees_swarm.proferka()
+            #Получаем лучшую пчелу
+            b = bees_swarm.get_best()
+            points_text.insert(tk.END, f"Итерация {i+1}:({b[0]:.4f}, {b[1]:.4f}) f= {b[2]:.4f}\n")
+            points_text.see(tk.END)
+            canvas.draw()
+            root.update()
+            time.sleep(float(tru_delay))
+
+            ax.cla()
+            ax.set_xlabel('X')
+            ax.set_ylabel('Y')
+            ax.set_zlabel('Z')
+            ax.plot_surface(X, Y, Z, cmap='twilight', alpha=0.8)
+            canvas.draw()
+        else:
+            break
+
+    for b in bees_swarm.bees[:uchastok]:
+        ax.scatter(b[0], b[1], b[2], c="red")
+    for new_scouts in bees_swarm.bees:
+        ax.scatter(new_scouts[0], new_scouts[1], new_scouts[2], c="black", alpha=0.8, s=3)
+    # Вывод окончательного результата
+    b = bees_swarm.get_best()
+    points_text.insert(tk.END, f"Итог ({b[0]:.4f}, {b[1]:.4f}) f= {b[2]:.4f}\n")
+    points_text.see(tk.END)
+    canvas.draw()
+    root.update()
+
+def search6():
+    global stop_flag
+    stop_flag = True
+    points_text.delete(1.0, tk.END)
+    selected_function = function_var.get()
+    tru_delay = delay_var6.get()
+    num_iter = points_var6.get()
+    antibodie = antibodie_var6.get()
+    notb = numb_of_the_best_var6.get()
+    nra = numb_rand_anti_var6.get()
+    clons = clons_var6.get()
+    mutation = mutation_var6.get()
+
+    minnX = minX_var.get()
+    maxxX = maxX_var.get()
+    minnY = minY_var.get()
+    maxxY = maxY_var.get()
+    osiX = osiX_var.get()
+    osiY = osiY_var.get()
+
+    match selected_function:
+        case "Изома":
+            function = lab1.easom_function
+        case "Била":
+            function = lab1.beale_function
+        case "Сферы":
+            function = lab1.sphere_function
+        case "Растригина":
+            function = lab1.rastrigin_function
+        case "График для 2 лабы":
+            function = lab2.f
+        case "Розенброкк":
+            function = lab3.rosenbrock
+        case "Химмельблау":
+            function = lab1.himmelblau_function
+
+    x = np.linspace(minnX, maxxX, 100)
+    y = np.linspace(minnY, maxxY, 100)
+    X, Y = np.meshgrid(x, y)
+    Z = function(X, Y)
+
+    ax.cla()
+    ax.plot_surface(X, Y, Z, cmap='twilight', alpha=0.8)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.set_title(selected_function)
+    ax.set_xlim(-osiX, osiX)
+    ax.set_ylim(-osiY, osiY)
+
+    immunity = lab6.Immunity(function, antibodie, notb, nra, clons, mutation)
+    #Генерирует начальные антитела
+    immunity.generate_start_antibodies(maxxX, maxxY)
+    #Сортирует их
+    immunity.sorted_antibodies()
+    for ag in immunity.new_antibodies:
+        ax.scatter(ag[0], ag[1], ag[2], c="black", s=1, marker="s")
+
+    #Находит лучшую антитело
+    immunity.get_best()
+    b = immunity.best_best()
+    ax.scatter(b[0], b[1], b[2], c="red")
+
+    canvas.draw()
+    root.update()
+
+    ax.cla()
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.plot_surface(X, Y, Z, cmap='twilight', alpha=0.8)
+    canvas.draw()
+    #Клонирует лучшие антитела
+    immunity.create_clones()
+    #Мутирует антитела
+    immunity.mutation_clone(maxxX, maxxY)
+    #Сортирует клонов
+    immunity.sorted_clones()
+    #Генерирует новую популяцию антител
+    immunity.uniting_populations(maxxX, maxxY)
+    #Сортирует антитела
+    immunity.sorted_n_anti()
+    #Выводит на экрна новые антитела
+    for ag in immunity.next_antibodies:
+        ax.scatter(ag[0], ag[1], ag[2], c="black", s=1, marker="s")
+
+    canvas.draw()
+    root.update()
+
+    ax.cla()
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.plot_surface(X, Y, Z, cmap='twilight', alpha=0.8)
+    canvas.draw()
+
+    for i in range(num_iter):
+        if (stop_flag):
+            immunity.get_best_next()
+            immunity.create_clones()
+            immunity.mutation_clone(maxxX, maxxY)
+            immunity.sorted_clones()
+            immunity.uniting_populations(maxxX, maxxY)
+            immunity.sorted_n_anti()
+            for ag in immunity.next_antibodies:
+                ax.scatter(ag[0], ag[1], ag[2], c="black", s=1, marker="s")
+
+            b = immunity.best_best()
+            ax.scatter(b[0], b[1], b[2], c="red")
+            points_text.insert(tk.END, f"Итерация {i+1}:({b[0]:.4f}, {b[1]:.4f}) f= {b[2]:.4f}\n")
+            points_text.see(tk.END)
+            canvas.draw()
+            root.update()
+            time.sleep(float(tru_delay))
+
+            ax.cla()
+            ax.set_xlabel('X')
+            ax.set_ylabel('Y')
+            ax.set_zlabel('Z')
+            ax.plot_surface(X, Y, Z, cmap='twilight', alpha=0.8)
+            canvas.draw()
+        else:
+            break
+
+    immunity.get_best_next()
+    immunity.create_clones()
+    immunity.mutation_clone(maxxX, maxxY)
+    immunity.sorted_clones()
+    immunity.uniting_populations(maxxX, maxxY)
+    immunity.sorted_n_anti()
+    for ag in immunity.next_antibodies:
+        ax.scatter(ag[0], ag[1], ag[2], c="black", s=1, marker="s")
+
+    # Вывод окончательного результата
+    b = immunity.best_best()
+    ax.scatter(b[0], b[1], b[2], c="red")
+    points_text.insert(tk.END, f"Итог ({b[0]:.4f}, {b[1]:.4f}) f= {b[2]:.4f}\n")
+    points_text.see(tk.END)
+    canvas.draw()
+    root.update()
+
 # #Рисует выбранный график
 def draw(function_var):
    global stop_flag
@@ -450,6 +719,10 @@ frame3 = ttk.Frame(notebook)
 notebook.add(frame3, text=f"Лаба 3")
 frame4 = ttk.Frame(notebook)
 notebook.add(frame4, text=f"Лаба 4")
+frame5 = ttk.Frame(notebook)
+notebook.add(frame5, text=f"Лаба 5")
+frame6 = ttk.Frame(notebook)
+notebook.add(frame6, text=f"Лаба 6")
 
 ##################### 1 laba #####################
 
@@ -539,19 +812,19 @@ particles_entry.grid(column=2, row=2)
 
 alpha_label = tk.Label(frame4, text="Альфа:", font=("Arial", 12))
 alpha_label.grid(column=1, row=3)
-alpha_var4 = tk.DoubleVar(value=0.8)
+alpha_var4 = tk.DoubleVar(value=1.1)
 alpha_entry = ttk.Entry(frame4, textvariable=alpha_var4)
 alpha_entry.grid(column=2, row=3)
 
 beta_label = tk.Label(frame4, text="Бета:", font=("Arial", 12))
 beta_label.grid(column=1, row=4)
-beta_var4 = tk.DoubleVar(value=0.9)
+beta_var4 = tk.DoubleVar(value=1.1)
 beta_entry = ttk.Entry(frame4, textvariable=beta_var4)
 beta_entry.grid(column=2, row=4)
 
 inertia_label = tk.Label(frame4, text="Инерция:", font=("Arial", 12))
 inertia_label.grid(column=1, row=5)
-inertia_var4 = tk.DoubleVar(value=0.5)
+inertia_var4 = tk.DoubleVar(value=0.73)
 inertia_entry = ttk.Entry(frame4, textvariable=inertia_var4)
 inertia_entry.grid(column=2, row=5)
 
@@ -560,6 +833,106 @@ delay_label.grid(column=1, row=6)
 delay_var4 = tk.DoubleVar(value=0.01)
 delay_entry = ttk.Entry(frame4, textvariable=delay_var4)
 delay_entry.grid(column=2, row=6)
+
+#####################  5 laba  #####################
+
+start_label = tk.Label(frame5, text="Начальная настройка", font=("Arial", 16))
+start_label.grid(column=1, row=0, columnspan=2)
+
+points_label = tk.Label(frame5, text="Количество итераций:", font=("Arial", 12))
+points_label.grid(column=1, row=1)
+points_var5 = tk.IntVar(value=200)
+points_entry = ttk.Entry(frame5, textvariable=points_var5)
+points_entry.grid(column=2, row=1)
+
+investigators_label = tk.Label(frame5, text="Разведчики:", font=("Arial", 12))
+investigators_label.grid(column=1, row=2)
+investigators_var5 = tk.IntVar(value=20)
+investigators_entry = ttk.Entry(frame5, textvariable=investigators_var5)
+investigators_entry.grid(column=2, row=2)
+
+bee_in_persp_label = tk.Label(frame5, text="Пчёл в перспективном уч:", font=("Arial", 12))
+bee_in_persp_label.grid(column=1, row=3)
+bee_in_persp_var5 = tk.IntVar(value=10)
+bee_in_persp_entry = ttk.Entry(frame5, textvariable=bee_in_persp_var5)
+bee_in_persp_entry.grid(column=2, row=3)
+
+bee_in_best_label = tk.Label(frame5, text="Пчёл в лучшем участке:", font=("Arial", 12))
+bee_in_best_label.grid(column=1, row=4)
+bee_in_best_var5 = tk.IntVar(value=20)
+bee_in_best_entry = ttk.Entry(frame5, textvariable=bee_in_best_var5)
+bee_in_best_entry.grid(column=2, row=4)
+
+persp_uchastki_label = tk.Label(frame5, text="Перспективных участков:", font=("Arial", 12))
+persp_uchastki_label.grid(column=1, row=5)
+persp_uchastki_var5 = tk.IntVar(value=3)
+persp_uchastki_entry = ttk.Entry(frame5, textvariable=persp_uchastki_var5)
+persp_uchastki_entry.grid(column=2, row=5)
+
+uchastki_label = tk.Label(frame5, text="Лучших участков:", font=("Arial", 12))
+uchastki_label.grid(column=1, row=6)
+uchastki_var5 = tk.IntVar(value=1)
+uchastki_entry = ttk.Entry(frame5, textvariable=uchastki_var5)
+uchastki_entry.grid(column=2, row=6)
+
+razmer_label = tk.Label(frame5, text="Размер участков:", font=("Arial", 12))
+razmer_label.grid(column=1, row=7)
+razmer_var5 = tk.DoubleVar(value=0.5)
+razmer_entry = ttk.Entry(frame5, textvariable=razmer_var5)
+razmer_entry.grid(column=2, row=7)
+
+delay_label = tk.Label(frame5, text="Задержка:", font=("Arial", 12))
+delay_label.grid(column=1, row=8)
+delay_var5 = tk.DoubleVar(value=0.01)
+delay_entry = ttk.Entry(frame5, textvariable=delay_var5)
+delay_entry.grid(column=2, row=8)
+
+#####################  6 laba  #####################
+
+start_label = tk.Label(frame6, text="Начальная настройка", font=("Arial", 16))
+start_label.grid(column=1, row=0, columnspan=2)
+
+points_label = tk.Label(frame6, text="Количество итераций:", font=("Arial", 12))
+points_label.grid(column=1, row=1)
+points_var6 = tk.IntVar(value=200)
+points_entry = ttk.Entry(frame6, textvariable=points_var6)
+points_entry.grid(column=2, row=1)
+
+antibodie_label = tk.Label(frame6, text="Антител:", font=("Arial", 12))
+antibodie_label.grid(column=1, row=2)
+antibodie_var6 = tk.IntVar(value=50)
+antibodie_entry = ttk.Entry(frame6, textvariable=antibodie_var6)
+antibodie_entry.grid(column=2, row=2)
+
+numb_of_the_best_label = tk.Label(frame6, text="Кол-во лучших отбираемых:", font=("Arial", 12))
+numb_of_the_best_label.grid(column=1, row=3)
+numb_of_the_best_var6 = tk.IntVar(value=10)
+numb_of_the_best_entry = ttk.Entry(frame6, textvariable=numb_of_the_best_var6)
+numb_of_the_best_entry.grid(column=2, row=3)
+
+numb_rand_anti_label = tk.Label(frame6, text="Число случайных антител:", font=("Arial", 12))
+numb_rand_anti_label.grid(column=1, row=4)
+numb_rand_anti_var6 = tk.IntVar(value=10)
+numb_rand_anti_entry = ttk.Entry(frame6, textvariable=numb_rand_anti_var6)
+numb_rand_anti_entry.grid(column=2, row=4)
+
+clons_label = tk.Label(frame6, text="Кол-во клонов:", font=("Arial", 12))
+clons_label.grid(column=1, row=5)
+clons_var6 = tk.IntVar(value=20)
+clons_entry = ttk.Entry(frame6, textvariable=clons_var6)
+clons_entry.grid(column=2, row=5)
+
+mutation_label = tk.Label(frame6, text="Коэффициент мутации:", font=("Arial", 12))
+mutation_label.grid(column=1, row=6)
+mutation_var6 = tk.DoubleVar(value=0.2)
+mutation_entry = ttk.Entry(frame6, textvariable=mutation_var6)
+mutation_entry.grid(column=2, row=6)
+
+delay_label = tk.Label(frame6, text="Задержка:", font=("Arial", 12))
+delay_label.grid(column=1, row=8)
+delay_var6 = tk.DoubleVar(value=0.01)
+delay_entry = ttk.Entry(frame6, textvariable=delay_var6)
+delay_entry.grid(column=2, row=8)
 
 #####################    #####################
 
