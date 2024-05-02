@@ -4,7 +4,7 @@ def rosenbrock(x, y):
     return (1 - x)**2 + 100 * (y - x**2)**2
 
 class GeneticAlgorithm:
-    def __init__(self, func, generations=50, min_func = True, mut_chance=0.5, survive_cof=0.5, individuals=100):
+    def __init__(self, func, generations=50, min_func = True, mut_chance=0.5, survive_cof=0.6, individuals=100):
         self.func = func
         self.population = dict()
         self.mut_chance = mut_chance #вероятность мутации

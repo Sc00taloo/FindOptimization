@@ -1,8 +1,7 @@
-import random
 from random import uniform
 
 class ParticleAlgorithm:
-    def __init__(self, func, particles = 10, alpha = 0.8, beta = 0.9, inertia = 0.5):
+    def __init__(self, func, particles = 10, alpha = 1.1, beta = 1.1, inertia = 0.73):
         self.new_particles = dict()
         self.velocity = dict()
         self.func = func
@@ -33,9 +32,9 @@ class ParticleAlgorithm:
     def new_velocity(self, velocity, particle, point_best, gbest):
         new_vel = dict()
         for i in range(2):
-            r1 = random.random()
-            r2 = random.random()
-            new_vel[i] = self.inertia * velocity[i] + self.alpha * r1 * (point_best[i] - particle[i]) + self.beta * r2 * (gbest[1][i] - particle[i])
+            r1 = uniform(0.0,self.alpha)
+            r2 = uniform(0.0,self.beta)
+            new_vel[i] = self.inertia * velocity[i] + r1 * (point_best[i] - particle[i]) + r2 * (gbest[1][i] - particle[i])
         return new_vel
 
     #Функция возвращает новую позицию для одной частицы
@@ -58,4 +57,3 @@ class ParticleAlgorithm:
             self.velocity[i] = ParticleAlgorithm.new_velocity(self, self.velocity[i], self.new_particles[i], point_best[i], gbest)
             #Обновляет параметры (позицию) для каждой частицы по i
             self.new_particles[i] = ParticleAlgorithm.new_position(self, self.velocity[i], self.new_particles[i])
-        self.generation_best = min(self.new_particles.items(), key=lambda item: item[1][2])
