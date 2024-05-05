@@ -5,12 +5,7 @@ from tkinter import ttk
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import lab1
-import lab2
-import lab3
-import lab4
-import lab5
-import lab6
+import lab1, lab2, lab3, lab4, lab5, lab6, lab7, lab8
 
 stop_flag = True
 
@@ -19,8 +14,12 @@ def toggle_optionmenu(event):
         function_dropdown.set_menu("График для 2 лабы")
         function_dropdown.config(state=tk.DISABLED)
         draw("График для 2 лабы")
+    elif notebook.index(notebook.select()) == 6:
+        function_dropdown.set_menu("Обратная сфера")
+        function_dropdown.config(state=tk.DISABLED)
+        draw("Обратная сфера")
     else:
-        function_dropdown.set_menu("...", "Била", "Сферы", "Изома", "Растригина", "График для 2 лабы", "Розенброкк", "Химмельблау")
+        function_dropdown.set_menu("...", "Била", "Сферы", "Обратная сфера", "Изома", "Растригина", "График для 2 лабы", "Розенброкк", "Химмельблау")
         function_dropdown.config(state=tk.NORMAL)
 
 def button_click():
@@ -37,6 +36,10 @@ def button_click():
             search5()
         case 5:
             search6()
+        case 6:
+            search7()
+        case 7:
+            search8()
 
 #Рисует и выводит результаты
 def search():
@@ -66,6 +69,9 @@ def search():
         case "Сферы":
             function = lab1.sphere_function
             gradient = lab1.gradient_sphere
+        case "Обратная сфера":
+            function = lab7.inverse_spherical_function
+            #gradient = lab1.gradient_sphere
         case "Растригина":
             function = lab1.rastrigin_function
             gradient = lab1.gradient_rastrigin
@@ -193,6 +199,8 @@ def search3():
             function = lab1.beale_function
         case "Сферы":
             function = lab1.sphere_function
+        case "Обратная сфера":
+            function = lab7.inverse_spherical_function
         case "Растригина":
             function = lab1.rastrigin_function
         case "График для 2 лабы":
@@ -302,6 +310,8 @@ def search4():
             function = lab1.beale_function
         case "Сферы":
             function = lab1.sphere_function
+        case "Обратная сфера":
+            function = lab7.inverse_spherical_function
         case "Растригина":
             function = lab1.rastrigin_function
         case "График для 2 лабы":
@@ -412,6 +422,8 @@ def search5():
             function = lab1.beale_function
         case "Сферы":
             function = lab1.sphere_function
+        case "Обратная сфера":
+            function = lab7.inverse_spherical_function
         case "Растригина":
             function = lab1.rastrigin_function
         case "График для 2 лабы":
@@ -533,6 +545,8 @@ def search6():
             function = lab1.beale_function
         case "Сферы":
             function = lab1.sphere_function
+        case "Обратная сфера":
+            function = lab7.inverse_spherical_function
         case "Растригина":
             function = lab1.rastrigin_function
         case "График для 2 лабы":
@@ -647,6 +661,213 @@ def search6():
     canvas.draw()
     root.update()
 
+def search7():
+    global stop_flag
+    stop_flag = True
+    points_text.delete(1.0, tk.END)
+    selected_function = function_var.get()
+    tru_delay = delay_var7.get()
+    num_iter = points_var7.get()
+    bacterii = bacterii_var7.get()
+    chemotaxis = chemotaxis_steps_var7.get()
+    elimination = elimination_step_var7.get()
+    elimination_numb = elimination_numb_var7.get()
+
+    minnX = minX_var.get()
+    maxxX = maxX_var.get()
+    minnY = minY_var.get()
+    maxxY = maxY_var.get()
+    osiX = osiX_var.get()
+    osiY = osiY_var.get()
+
+    match selected_function:
+        case "Изома":
+            function = lab1.easom_function
+        case "Била":
+            function = lab1.beale_function
+        case "Сферы":
+            function = lab1.sphere_function
+        case "Обратная сфера":
+            function = lab7.inverse_spherical_function
+        case "Растригина":
+            function = lab1.rastrigin_function
+        case "График для 2 лабы":
+            function = lab2.f
+        case "Розенброкк":
+            function = lab3.rosenbrock
+        case "Химмельблау":
+            function = lab1.himmelblau_function
+
+    x = np.linspace(minnX, maxxX, 100)
+    y = np.linspace(minnY, maxxY, 100)
+    X, Y = np.meshgrid(x, y)
+    Z = function(X, Y)
+
+    ax.cla()
+    ax.plot_surface(X, Y, Z, cmap='twilight', alpha=0.8)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.set_title(selected_function)
+    ax.set_xlim(-osiX, osiX)
+    ax.set_ylim(-osiY, osiY)
+
+    bacterias = lab7.Bacteria(function, bacterii, chemotaxis, elimination, elimination_numb)
+    bacterias.generate_start_bacteria(maxxX, maxxY)
+    for i in range(num_iter):
+        if (stop_flag):
+            bacterias.chemotaxis(1 /(i+1))
+            bacterias.reproduction(maxxX,maxxY)
+            if ((i + 1) % elimination == 0):
+                bacterias.elimnination(maxxX,maxxY)
+
+            bacterias.sorted_health()
+            for bac in bacterias.new_bacteria:
+                ax.scatter(bac[0], bac[1], bac[2], c="black", s=1, marker="s")
+
+            b = bacterias.get_best()
+            ax.scatter(b[0], b[1], b[2], c="red")
+
+            points_text.insert(tk.END, f"Итерация {i+1}:({b[0]:.4f}, {b[1]:.4f}) f= {b[2]:.4f}\n")
+            points_text.see(tk.END)
+
+            canvas.draw()
+            root.update()
+            time.sleep(float(tru_delay))
+
+            ax.cla()
+            ax.set_xlabel('X')
+            ax.set_ylabel('Y')
+            ax.set_zlabel('Z')
+            ax.plot_surface(X, Y, Z, cmap='twilight', alpha=0.8)
+            canvas.draw()
+        else:
+            break
+
+    for bac in bacterias.new_bacteria:
+        ax.scatter(bac[0], bac[1], bac[2], c="black", s=1, marker="s")
+
+    b = bacterias.get_best()
+    ax.scatter(b[0], b[1], b[2], c="red")
+
+    points_text.insert(tk.END, f"Итог ({b[0]:.4f}, {b[1]:.4f}) f= {b[2]:.4f}\n")
+    points_text.see(tk.END)
+
+    canvas.draw()
+    root.update()
+
+def search8():
+    global stop_flag
+    stop_flag = True
+    points_text.delete(1.0, tk.END)
+    selected_function = function_var.get()
+    tru_delay = delay_var8.get()
+    num_iter = points_var8.get()
+    bacterii = bacterii_var8.get()
+    chemotaxis = chemotaxis_steps_var8.get()
+    elimination = elimination_step_var8.get()
+    elimination_numb = elimination_numb_var8.get()
+    alpha = alpha_var8.get()
+    beta = beta_var8.get()
+    inertia = inertia_var8.get()
+
+    minnX = minX_var.get()
+    maxxX = maxX_var.get()
+    minnY = minY_var.get()
+    maxxY = maxY_var.get()
+    osiX = osiX_var.get()
+    osiY = osiY_var.get()
+
+    match selected_function:
+        case "Изома":
+            function = lab1.easom_function
+        case "Била":
+            function = lab1.beale_function
+        case "Сферы":
+            function = lab1.sphere_function
+        case "Обратная сфера":
+            function = lab7.inverse_spherical_function
+        case "Растригина":
+            function = lab1.rastrigin_function
+        case "График для 2 лабы":
+            function = lab2.f
+        case "Розенброкк":
+            function = lab3.rosenbrock
+        case "Химмельблау":
+            function = lab1.himmelblau_function
+
+    x = np.linspace(minnX, maxxX, 100)
+    y = np.linspace(minnY, maxxY, 100)
+    X, Y = np.meshgrid(x, y)
+    Z = function(X, Y)
+
+    ax.cla()
+    ax.plot_surface(X, Y, Z, cmap='twilight', alpha=0.8)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.set_title(selected_function)
+    ax.set_xlim(-osiX, osiX)
+    ax.set_ylim(-osiY, osiY)
+
+    hubrid = lab8.HybridAlgorithm(function, bacterii, alpha, beta, inertia, chemotaxis, elimination, elimination_numb)
+    hubrid.generate_start(maxxX, maxxY)
+    for j in range(bacterii):
+        ax.scatter(hubrid.particles_data[j][0], hubrid.particles_data[j][1], hubrid.particles_data[j][2],
+                   c='black', alpha=0.8)
+    hubrid.sorted()
+    best_particles = hubrid.get_best_position()
+    ax.scatter(best_particles[0], best_particles[1], best_particles[2], c='red', alpha=0.8)
+
+    canvas.draw()
+    root.update()
+
+    ax.cla()
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.plot_surface(X, Y, Z, cmap='twilight', alpha=0.8)
+    canvas.draw()
+
+    for i in range(num_iter):
+        if stop_flag:
+            hubrid.update_particles()
+            hubrid.chemotaxis(1 / (1+i))
+            if ((i + 1) % elimination == 0):
+                 hubrid.elimination(maxxX,maxxY)
+            for bac in hubrid.particles_data:
+                ax.scatter(bac[0], bac[1], bac[2], c="black", s=1, marker="s")
+
+            hubrid.sorted()
+            b = hubrid.get_best()
+            ax.scatter(b[0], b[1], b[2], c="red")
+
+            points_text.insert(tk.END, f"Итерация {i + 1}:({b[0]:.4f}, {b[1]:.4f}) f= {b[2]:.4f}\n")
+            points_text.see(tk.END)
+
+            canvas.draw()
+            root.update()
+            time.sleep(float(tru_delay))
+
+            ax.cla()
+            ax.set_xlabel('X')
+            ax.set_ylabel('Y')
+            ax.set_zlabel('Z')
+            ax.plot_surface(X, Y, Z, cmap='twilight', alpha=0.8)
+            canvas.draw()
+        else:
+            break
+
+    hubrid.sorted()
+    b = hubrid.get_best()
+    ax.scatter(b[0], b[1], b[2], c="red")
+
+    points_text.insert(tk.END, f"Итог ({b[0]:.4f}, {b[1]:.4f}) f= {b[2]:.4f}\n")
+    points_text.see(tk.END)
+
+    canvas.draw()
+    root.update()
+
 # #Рисует выбранный график
 def draw(function_var):
    global stop_flag
@@ -665,6 +886,8 @@ def draw(function_var):
            function = lab1.beale_function
        case "Сферы":
            function = lab1.sphere_function
+       case "Обратная сфера":
+            function = lab7.inverse_spherical_function
        case "Растригина":
            function = lab1.rastrigin_function
        case "График для 2 лабы":
@@ -708,21 +931,25 @@ canvas.get_tk_widget().grid(column=0,rowspan=30)
 
 #Создание вкладок Лаб
 notebook = ttk.Notebook(root)
-notebook.grid(row=0, column=1, columnspan=2, sticky="nsew")
+notebook.grid(row=0, column=1, columnspan=2)
 style = ttk.Style()
 style.configure("TNotebook.Tab", font=("Arial", 12))
 frame1 = ttk.Frame(notebook)
-notebook.add(frame1, text=f"Лаба 1")
+notebook.add(frame1, text=f"1")
 frame2 = ttk.Frame(notebook)
-notebook.add(frame2, text=f"Лаба 2")
+notebook.add(frame2, text=f"2")
 frame3 = ttk.Frame(notebook)
-notebook.add(frame3, text=f"Лаба 3")
+notebook.add(frame3, text=f"3")
 frame4 = ttk.Frame(notebook)
-notebook.add(frame4, text=f"Лаба 4")
+notebook.add(frame4, text=f"4")
 frame5 = ttk.Frame(notebook)
-notebook.add(frame5, text=f"Лаба 5")
+notebook.add(frame5, text=f"5")
 frame6 = ttk.Frame(notebook)
-notebook.add(frame6, text=f"Лаба 6")
+notebook.add(frame6, text=f"6")
+frame7 = ttk.Frame(notebook)
+notebook.add(frame7, text=f"7")
+frame8 = ttk.Frame(notebook)
+notebook.add(frame8, text=f"8")
 
 ##################### 1 laba #####################
 
@@ -730,34 +957,34 @@ start_label = tk.Label(frame1, text="Начальная настройка", fon
 start_label.grid(column=1, row=0, columnspan=2)
 
 start_labelX = tk.Label(frame1, text="Начальное X:", font=("Arial", 12))
-start_labelX.grid(column=1, row=1)
+start_labelX.grid(column=1, row=1, columnspan=1)
 X_var = tk.DoubleVar(value=1)
 X_entry = ttk.Entry(frame1, textvariable=X_var)
-X_entry.grid(column=2, row=1)
+X_entry.grid(column=2, row=1, columnspan=1)
 
 start_labelY = tk.Label(frame1, text="Начальное Y:", font=("Arial", 12))
-start_labelY.grid(column=1, row=2)
+start_labelY.grid(column=1, row=2, columnspan=1)
 Y_var = tk.DoubleVar(value=1)
 Y_entry = ttk.Entry(frame1, textvariable=Y_var)
-Y_entry.grid(column=2, row=2)
+Y_entry.grid(column=2, row=2, columnspan=1)
 
 step = tk.Label(frame1, text="Шаг:", font=("Arial", 12))
-step.grid(column=1, row=3)
+step.grid(column=1, row=3, columnspan=1)
 step_var = tk.DoubleVar(value=0.01)
 step_entry = ttk.Entry(frame1, textvariable=step_var)
-step_entry.grid(column=2, row=3)
+step_entry.grid(column=2, row=3, columnspan=1)
 
-points_label = tk.Label(frame1, text="Количество итераций:", font=("Arial", 12))
-points_label.grid(column=1, row=4)
+points_label = tk.Label(frame1, text="Кол-во итераций:", font=("Arial", 12))
+points_label.grid(column=1, row=4, columnspan=1)
 points_var = tk.IntVar(value=100)
 points_entry = ttk.Entry(frame1, textvariable=points_var)
-points_entry.grid(column=2, row=4)
+points_entry.grid(column=2, row=4, columnspan=1)
 
 delay_label = tk.Label(frame1, text="Задержка:", font=("Arial", 12))
-delay_label.grid(column=1, row=5)
+delay_label.grid(column=1, row=5, columnspan=1)
 delay_var = tk.DoubleVar(value=0.05)
 delay_entry = ttk.Entry(frame1, textvariable=delay_var)
-delay_entry.grid(column=2, row=5)
+delay_entry.grid(column=2, row=5, columnspan=1)
 
 ##################### 2 laba #####################
 
@@ -765,10 +992,10 @@ start_label = tk.Label(frame2, text="Начальная настройка", fon
 start_label.grid(column=1, row=0, columnspan=2)
 
 delay_label = tk.Label(frame2, text="Задержка:", font=("Arial", 12))
-delay_label.grid(column=1, row=1)
+delay_label.grid(column=1, row=1, columnspan=1)
 delay_var2 = tk.DoubleVar(value=0.5)
 delay_entry = ttk.Entry(frame2, textvariable=delay_var2)
-delay_entry.grid(column=2, row=1)
+delay_entry.grid(column=2, row=1, columnspan=1)
 
 #####################  3 laba  #####################
 
@@ -776,22 +1003,22 @@ start_label = tk.Label(frame3, text="Начальная настройка", fon
 start_label.grid(column=1, row=0, columnspan=2)
 
 points_label = tk.Label(frame3, text="Количество итераций:", font=("Arial", 12))
-points_label.grid(column=1, row=1)
+points_label.grid(column=1, row=1, columnspan=1)
 points_var3 = tk.IntVar(value=100)
 points_entry = ttk.Entry(frame3, textvariable=points_var3)
-points_entry.grid(column=2, row=1)
+points_entry.grid(column=2, row=1, columnspan=1)
 
 individuals_label = tk.Label(frame3, text="Количество особей:", font=("Arial", 12))
-individuals_label.grid(column=1, row=2)
+individuals_label.grid(column=1, row=2, columnspan=1)
 individuals_var3 = tk.IntVar(value=20)
 individuals_entry = ttk.Entry(frame3, textvariable=individuals_var3)
-individuals_entry.grid(column=2, row=2)
+individuals_entry.grid(column=2, row=2, columnspan=1)
 
 delay_label = tk.Label(frame3, text="Задержка:", font=("Arial", 12))
-delay_label.grid(column=1, row=3)
+delay_label.grid(column=1, row=3, columnspan=1)
 delay_var3 = tk.DoubleVar(value=0.01)
 delay_entry = ttk.Entry(frame3, textvariable=delay_var3)
-delay_entry.grid(column=2, row=3)
+delay_entry.grid(column=2, row=3, columnspan=1)
 
 #####################  4 laba  #####################
 
@@ -924,7 +1151,7 @@ clons_entry.grid(column=2, row=5)
 
 mutation_label = tk.Label(frame6, text="Коэффициент мутации:", font=("Arial", 12))
 mutation_label.grid(column=1, row=6)
-mutation_var6 = tk.DoubleVar(value=0.2)
+mutation_var6 = tk.DoubleVar(value=1.2)
 mutation_entry = ttk.Entry(frame6, textvariable=mutation_var6)
 mutation_entry.grid(column=2, row=6)
 
@@ -933,6 +1160,106 @@ delay_label.grid(column=1, row=8)
 delay_var6 = tk.DoubleVar(value=0.01)
 delay_entry = ttk.Entry(frame6, textvariable=delay_var6)
 delay_entry.grid(column=2, row=8)
+
+#####################  7 laba  #####################
+
+start_label = tk.Label(frame7, text="Начальная настройка", font=("Arial", 16))
+start_label.grid(column=1, row=0, columnspan=2)
+
+points_label = tk.Label(frame7, text="Количество итераций:", font=("Arial", 12))
+points_label.grid(column=1, row=1)
+points_var7 = tk.IntVar(value=150)
+points_entry = ttk.Entry(frame7, textvariable=points_var7)
+points_entry.grid(column=2, row=1)
+
+bacterii_label = tk.Label(frame7, text="Бактерий:", font=("Arial", 12))
+bacterii_label.grid(column=1, row=2)
+bacterii_var7 = tk.IntVar(value=40)
+bacterii_entry = ttk.Entry(frame7, textvariable=bacterii_var7)
+bacterii_entry.grid(column=2, row=2)
+
+chemotaxis_steps_label = tk.Label(frame7, text="Шагов хемотаксиса:", font=("Arial", 12))
+chemotaxis_steps_label.grid(column=1, row=3)
+chemotaxis_steps_var7 = tk.IntVar(value=6)
+chemotaxis_steps_entry = ttk.Entry(frame7, textvariable=chemotaxis_steps_var7)
+chemotaxis_steps_entry.grid(column=2, row=3)
+
+elimination_step_label = tk.Label(frame7, text="Шаг ликвидации:", font=("Arial", 12))
+elimination_step_label.grid(column=1, row=4)
+elimination_step_var7 = tk.IntVar(value=15)
+elimination_step_entry = ttk.Entry(frame7, textvariable=elimination_step_var7)
+elimination_step_entry.grid(column=2, row=4)
+
+elimination_numb_label = tk.Label(frame7, text="Число ликвидируемых:", font=("Arial", 12))
+elimination_numb_label.grid(column=1, row=5)
+elimination_numb_var7 = tk.IntVar(value=25)
+elimination_numb_entry = ttk.Entry(frame7, textvariable=elimination_numb_var7)
+elimination_numb_entry.grid(column=2, row=5)
+
+delay_label = tk.Label(frame7, text="Задержка:", font=("Arial", 12))
+delay_label.grid(column=1, row=6)
+delay_var7 = tk.DoubleVar(value=0.01)
+delay_entry = ttk.Entry(frame7, textvariable=delay_var7)
+delay_entry.grid(column=2, row=6)
+
+#####################  8 laba  #####################
+
+start_label = tk.Label(frame8, text="Начальная настройка", font=("Arial", 16))
+start_label.grid(column=1, row=0, columnspan=2)
+
+points_label = tk.Label(frame8, text="Количество итераций:", font=("Arial", 12))
+points_label.grid(column=1, row=1)
+points_var8 = tk.IntVar(value=50)
+points_entry = ttk.Entry(frame8, textvariable=points_var8)
+points_entry.grid(column=2, row=1)
+
+bacterii_label = tk.Label(frame8, text="Частиц/Бактерий:", font=("Arial", 12))
+bacterii_label.grid(column=1, row=2)
+bacterii_var8 = tk.IntVar(value=20)
+bacterii_entry = ttk.Entry(frame8, textvariable=bacterii_var8)
+bacterii_entry.grid(column=2, row=2)
+
+alpha_label = tk.Label(frame8, text="Альфа:", font=("Arial", 12))
+alpha_label.grid(column=1, row=3)
+alpha_var8 = tk.DoubleVar(value=1.1)
+alpha_entry = ttk.Entry(frame8, textvariable=alpha_var8)
+alpha_entry.grid(column=2, row=3)
+
+beta_label = tk.Label(frame8, text="Бета:", font=("Arial", 12))
+beta_label.grid(column=1, row=4)
+beta_var8 = tk.DoubleVar(value=1.1)
+beta_entry = ttk.Entry(frame8, textvariable=beta_var8)
+beta_entry.grid(column=2, row=4)
+
+inertia_label = tk.Label(frame8, text="Инерция:", font=("Arial", 12))
+inertia_label.grid(column=1, row=5)
+inertia_var8 = tk.DoubleVar(value=0.73)
+inertia_entry = ttk.Entry(frame8, textvariable=inertia_var8)
+inertia_entry.grid(column=2, row=5)
+
+chemotaxis_steps_label = tk.Label(frame8, text="Шагов хемотаксиса:", font=("Arial", 12))
+chemotaxis_steps_label.grid(column=1, row=6)
+chemotaxis_steps_var8 = tk.IntVar(value=6)
+chemotaxis_steps_entry = ttk.Entry(frame8, textvariable=chemotaxis_steps_var8)
+chemotaxis_steps_entry.grid(column=2, row=6)
+
+elimination_step_label = tk.Label(frame8, text="Шаг ликвидации:", font=("Arial", 12))
+elimination_step_label.grid(column=1, row=7)
+elimination_step_var8 = tk.IntVar(value=15)
+elimination_step_entry = ttk.Entry(frame8, textvariable=elimination_step_var8)
+elimination_step_entry.grid(column=2, row=7)
+
+elimination_numb_label = tk.Label(frame8, text="Число ликвидируемых:", font=("Arial", 12))
+elimination_numb_label.grid(column=1, row=8)
+elimination_numb_var8 = tk.IntVar(value=5)
+elimination_numb_entry = ttk.Entry(frame8, textvariable=elimination_numb_var8)
+elimination_numb_entry.grid(column=2, row=8)
+
+delay_label = tk.Label(frame8, text="Задержка:", font=("Arial", 12))
+delay_label.grid(column=1, row=9)
+delay_var8 = tk.DoubleVar(value=0.01)
+delay_entry = ttk.Entry(frame8, textvariable=delay_var8)
+delay_entry.grid(column=2, row=9)
 
 #####################    #####################
 
@@ -943,7 +1270,7 @@ end_label.grid(column=1, row=8, columnspan=2)
 function_label = tk.Label(root, text="Функция:", font=("Arial", 12))
 function_label.grid(column=1,row=9)
 function_var = tk.StringVar(value="...")
-function_dropdown = ttk.OptionMenu(root, function_var, "...", "Била", "Сферы", "Изома", "Растригина", "График для 2 лабы", "Розенброкк", "Химмельблау", command=draw)
+function_dropdown = ttk.OptionMenu(root, function_var, "...", "Била", "Сферы", "Обратная сфера" , "Изома", "Растригина", "График для 2 лабы", "Розенброкк", "Химмельблау", command=draw)
 function_dropdown.grid(column=2,row=9)
 notebook.bind('<<NotebookTabChanged>>', toggle_optionmenu)
 

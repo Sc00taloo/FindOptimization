@@ -1,4 +1,3 @@
-import random
 from random import uniform
 from operator import itemgetter
 
@@ -71,7 +70,7 @@ class Bees:
     def best_in_uchastki(self):
         self.currect_bees = 0
         for i in range(self.e):
-            for j in range(self.b_elite):
+            for _ in range(self.b_elite):
                 maxX = self.best_workers[i][0] + self.rad
                 maxY = self.best_workers[i][1] + self.rad
                 minX = self.best_workers[i][0] - self.rad
@@ -92,7 +91,7 @@ class Bees:
     #Отправляет пчёл на перспективные участки
     def persp_in_uchastki(self):
         for i in range(self.p):
-            for j in range(self.b_persp):
+            for _ in range(self.b_persp):
                 maxX = self.persp_workers[i][0] + self.rad
                 maxY = self.persp_workers[i][1] + self.rad
                 minX = self.persp_workers[i][0] - self.rad

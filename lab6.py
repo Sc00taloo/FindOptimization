@@ -1,4 +1,3 @@
-import math
 import random
 from operator import itemgetter
 from random import uniform
@@ -34,8 +33,7 @@ class Immunity:
             for j in range(self.clon_numb):
                 self.clones_of_best_antibodies.append(self.best_antibodies[i].copy())
 
-    #Мутация осуществляется путем изменения координаты X, координаты Y или
-    #обеих одновременно на значение, взятое из нормального распределения, где исходная координата служит вершиной.
+    #Мутация осуществляется путем изменения координаты X и координаты Y
     def mutation_clone(self, max_x, max_y):
         for i in range(self.best):
             for j in range(self.clon_numb):
