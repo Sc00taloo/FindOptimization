@@ -15,6 +15,7 @@ class HybridAlgorithm:
         self.elimination_numb = elimination_numb
         self.particles_data = []
         self.bacteria_data = []
+        self.point_best = [0] * barticles
         self.old_particles = []
         self.best_solution = None
 
@@ -42,11 +43,16 @@ class HybridAlgorithm:
         for i in range(self.barticles):
             best_global = min(self.bacteria_data, key=lambda x: x[3])
             best_particle = min(self.particles_data, key=lambda x: x[2])
+            if self.old_particles[i][2] < self.particles_data[i][2]:
+                self.point_best[i] = self.old_particles[i]
+            else:
+                self.old_particles[i] = self.particles_data[i]
+            self.point_best[i] = self.particles_data[i]
             particle = self.particles_data[i]
             r1 = uniform(0.0, self.alpha)
             r2 = uniform(0.0, self.beta)
-            new_velocity_x = self.inertia * particle[3] + r1 * (best_particle[0] - particle[0]) + r2 * (best_global[0] - particle[0])
-            new_velocity_y = self.inertia * particle[4] + r1 * (best_particle[1] - particle[1]) + r2 * (best_global[1] - particle[1])
+            new_velocity_x = self.inertia * particle[3] + r1 * (self.point_best[i][0] - particle[0]) + r2 * (best_global[0] - particle[0])
+            new_velocity_y = self.inertia * particle[4] + r1 * (self.point_best[i][1] - particle[1]) + r2 * (best_global[1] - particle[1])
             new_x = particle[0] + new_velocity_x
             new_y = particle[1] + new_velocity_y
             particle[0] = new_x
@@ -82,9 +88,14 @@ class HybridAlgorithm:
                 po_y = -y + 2 * random.random() * y
                 self.bacteria_data[idx] = [po_x, po_y, self.func(po_x, po_y), self.func(po_x, po_y), uniform(-1, 1), uniform(-1, 1)]
 
+    def reproduction(self, x, y):
+        self.bacteria_data = sorted(self.bacteria_data, key=itemgetter(3), reverse=False)
+        for i in range(self.barticles // 2):
+            self.bacteria_data[i] = self.bacteria_data[i + self.barticles // 2]
+
     def sorted(self):
         self.bacteria_data = sorted(self.bacteria_data, key=itemgetter(3), reverse=False)
     def get_best_position(self):
         return self.bacteria_data[0]
     def get_best(self):
-        return sorted(self.bacteria_data, key=itemgetter(3), reverse=True)[0]
+        return sorted(self.bacteria_data, key=itemgetter(3), reverse=False)[0]
